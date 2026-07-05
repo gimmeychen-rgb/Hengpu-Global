@@ -1,4 +1,4 @@
-name: Hengpu Auto Execution System
+name: Hengpu AI Autonomous System V3
 
 on:
   workflow_dispatch:
@@ -7,29 +7,30 @@ on:
       - 'automation/**'
 
 jobs:
-  run-system:
+  ai-run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Read Input
+      - name: Read Input File
         run: |
-          echo "=== INPUT LAYER ==="
-          ls automation/
+          echo "=== INPUT ==="
+          cat automation/input.md
 
-      - name: Trigger Analysis
-        run: |
-          echo "=== TRIGGER LAYER ==="
-          echo "Checking system rules..."
-
-      - name: Execute AI Flow Simulation
+      - name: Send to AI (OpenAI API)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           echo "=== AI PROCESSING ==="
-          echo "Prompts → Codex → Workflow → Output"
+          echo "Sending request to AI model..."
 
       - name: Generate Output
         run: |
           echo "=== OUTPUT ==="
-          echo "System executed successfully"
+          echo "AI-generated business result will be produced here"
+
+      - name: Save Result
+        run: |
+          echo "Saving output to automation/output.md"
