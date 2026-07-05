@@ -1,0 +1,35 @@
+name: Hengpu Auto Execution System
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'automation/**'
+
+jobs:
+  run-system:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Input
+        run: |
+          echo "=== INPUT LAYER ==="
+          ls automation/
+
+      - name: Trigger Analysis
+        run: |
+          echo "=== TRIGGER LAYER ==="
+          echo "Checking system rules..."
+
+      - name: Execute AI Flow Simulation
+        run: |
+          echo "=== AI PROCESSING ==="
+          echo "Prompts → Codex → Workflow → Output"
+
+      - name: Generate Output
+        run: |
+          echo "=== OUTPUT ==="
+          echo "System executed successfully"
