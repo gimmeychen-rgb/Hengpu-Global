@@ -1,0 +1,36 @@
+name: Hengpu AI Autonomous System V3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'automation/**'
+
+jobs:
+  ai-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Read Input File
+        run: |
+          echo "=== INPUT ==="
+          cat automation/input.md
+
+      - name: Send to AI (OpenAI API)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "=== AI PROCESSING ==="
+          echo "Sending request to AI model..."
+
+      - name: Generate Output
+        run: |
+          echo "=== OUTPUT ==="
+          echo "AI-generated business result will be produced here"
+
+      - name: Save Result
+        run: |
+          echo "Saving output to automation/output.md"
