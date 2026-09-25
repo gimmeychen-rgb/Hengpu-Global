@@ -1,0 +1,151 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hengpu
+      POSTGRES_PASSWORD: hengpu
+      POSTGRES_DB: hengpu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/auth-service
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+      JWT_SECRET: hengpu-local-secret
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3001:3001"
+
+  user-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/user-service
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+      JWT_SECRET: hengpu-local-secret
+    depends_on:
+      - postgres
+    ports:
+      - "3002:3002"
+
+  request-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/request-service
+    environment:
+      PORT: 3003
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+      JWT_SECRET: hengpu-local-secret
+    depends_on:
+      - postgres
+    ports:
+      - "3003:3003"
+
+  supplier-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/supplier-service
+    environment:
+      PORT: 3004
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+      JWT_SECRET: hengpu-local-secret
+    depends_on:
+      - postgres
+    ports:
+      - "3004:3004"
+
+  matching-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/matching-service
+    environment:
+      PORT: 3005
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+    depends_on:
+      - postgres
+    ports:
+      - "3005:3005"
+
+  project-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_PATH: services/project-service
+    environment:
+      PORT: 3006
+      DATABASE_URL: postgres://hengpu:hengpu@postgres:5432/hengpu
+      JWT_SECRET: hengpu-local-secret
+    depends_on:
+      - postgres
+    ports:
+      - "3006:3006"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.next
+      args:
+        APP_PATH: apps/web
+    environment:
+      NEXT_PUBLIC_AUTH_API: http://localhost:3001
+      NEXT_PUBLIC_USER_API: http://localhost:3002
+      NEXT_PUBLIC_REQUEST_API: http://localhost:3003
+      NEXT_PUBLIC_SUPPLIER_API: http://localhost:3004
+      NEXT_PUBLIC_MATCHING_API: http://localhost:3005
+      NEXT_PUBLIC_PROJECT_API: http://localhost:3006
+    depends_on:
+      - auth-service
+      - request-service
+      - supplier-service
+      - matching-service
+    ports:
+      - "3000:3000"
+
+  admin:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.next
+      args:
+        APP_PATH: apps/admin
+    environment:
+      NEXT_PUBLIC_AUTH_API: http://localhost:3001
+      NEXT_PUBLIC_USER_API: http://localhost:3002
+      NEXT_PUBLIC_REQUEST_API: http://localhost:3003
+      NEXT_PUBLIC_SUPPLIER_API: http://localhost:3004
+      NEXT_PUBLIC_PROJECT_API: http://localhost:3006
+    depends_on:
+      - user-service
+      - request-service
+      - supplier-service
+      - project-service
+    ports:
+      - "3010:3010"
+
+volumes:
+  postgres_data:

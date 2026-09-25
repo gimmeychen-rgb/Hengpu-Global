@@ -1,0 +1,21 @@
+{
+  "name": "hengpu-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:admin": "npm --workspace apps/admin run dev",
+    "dev:auth": "npm --workspace services/auth-service run start:dev",
+    "dev:users": "npm --workspace services/user-service run start:dev",
+    "dev:requests": "npm --workspace services/request-service run start:dev",
+    "dev:suppliers": "npm --workspace services/supplier-service run start:dev",
+    "dev:matching": "npm --workspace services/matching-service run start:dev",
+    "dev:projects": "npm --workspace services/project-service run start:dev",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

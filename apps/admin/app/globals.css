@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #f4f5f3;
+  color: #18181b;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: white;
+  padding: 10px 12px;
+  font-size: 14px;
+}
