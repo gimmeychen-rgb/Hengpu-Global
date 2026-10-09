@@ -1,6 +1,12 @@
 export type Locale = 'en' | 'zh';
 
+export function isLocale(value: string): value is Locale {
+  return value === 'en' || value === 'zh';
+}
+
 export type CorporateContent = {
+  seoTitle: string;
+  seoDescription: string;
   navAbout: string;
   navCapabilities: string;
   navProjects: string;
@@ -45,6 +51,8 @@ export type CorporateContent = {
 // Corporate copy mirrors the existing homepage in both languages.
 export const siteContent = {
   "en": {
+    "seoTitle": "Hengpu Global Supply Chain",
+    "seoDescription": "Hengpu connects international demand with trusted Chinese resources, technology, manufacturers and long-term partners.",
     "navAbout": "About",
     "navCapabilities": "Capabilities",
     "navProjects": "Projects",
@@ -86,6 +94,8 @@ export const siteContent = {
     "contactEmail": "gimmey@hengpuglobal.com"
   },
   "zh": {
+    "seoTitle": "恒普全球供应链",
+    "seoDescription": "恒普连接国际需求与值得信赖的中国资源、技术、制造商及长期合作伙伴。",
     "navAbout": "关于恒普",
     "navCapabilities": "业务能力",
     "navProjects": "项目",

@@ -4,7 +4,7 @@ import { CorporateHeader } from './corporate-header';
 type CorporateHomeProps = {
   content: CorporateContent;
   language: Locale;
-  onLanguageChange: (language: Locale) => void;
+  onLanguageChange?: (language: Locale) => void;
 };
 
 export function CorporateHome({ content, language, onLanguageChange }: CorporateHomeProps) {
