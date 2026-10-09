@@ -1,14 +1,11 @@
-'use client';
-
 import type { CorporateContent, Locale } from '../lib/site-content';
 
 type CorporateHeaderProps = {
   content: CorporateContent;
   language: Locale;
-  onLanguageChange?: (language: Locale) => void;
 };
 
-export function CorporateHeader({ content, language, onLanguageChange }: CorporateHeaderProps) {
+export function CorporateHeader({ content, language }: CorporateHeaderProps) {
   const isChinese = language === 'zh';
 
   return (
@@ -38,35 +35,13 @@ export function CorporateHeader({ content, language, onLanguageChange }: Corpora
             </nav>
 
             <div className="flex items-center gap-2 text-sm">
-              {onLanguageChange ? (
-                <>
-              <button
-                onClick={() => onLanguageChange('zh')}
-                className={isChinese ? 'font-semibold' : 'text-zinc-400'}
-              >
+              <a href="/zh" hrefLang="zh" lang="zh" aria-current={isChinese ? 'page' : undefined} className={isChinese ? 'font-semibold' : 'text-zinc-400'}>
                 {content.chineseLabel}
-              </button>
-
+              </a>
               <span className="text-zinc-300">|</span>
-
-              <button
-                onClick={() => onLanguageChange('en')}
-                className={!isChinese ? 'font-semibold' : 'text-zinc-400'}
-              >
+              <a href="/en" hrefLang="en" lang="en" aria-current={!isChinese ? 'page' : undefined} className={!isChinese ? 'font-semibold' : 'text-zinc-400'}>
                 {content.englishLabel}
-              </button>
-                </>
-              ) : (
-                <>
-                  <a href="/zh" hrefLang="zh" lang="zh" aria-current={isChinese ? 'page' : undefined} className={isChinese ? 'font-semibold' : 'text-zinc-400'}>
-                    {content.chineseLabel}
-                  </a>
-                  <span className="text-zinc-300">|</span>
-                  <a href="/en" hrefLang="en" lang="en" aria-current={!isChinese ? 'page' : undefined} className={!isChinese ? 'font-semibold' : 'text-zinc-400'}>
-                    {content.englishLabel}
-                  </a>
-                </>
-              )}
+              </a>
             </div>
           </div>
         </div>

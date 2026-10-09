@@ -4,13 +4,12 @@ import { CorporateHeader } from './corporate-header';
 type CorporateHomeProps = {
   content: CorporateContent;
   language: Locale;
-  onLanguageChange?: (language: Locale) => void;
 };
 
-export function CorporateHome({ content, language, onLanguageChange }: CorporateHomeProps) {
+export function CorporateHome({ content, language }: CorporateHomeProps) {
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-[#18181b]">
-      <CorporateHeader content={content} language={language} onLanguageChange={onLanguageChange} />
+      <CorporateHeader content={content} language={language} />
 
       <section className="mx-auto flex min-h-[78vh] max-w-6xl items-center px-6 py-24">
         <div className="max-w-4xl">
