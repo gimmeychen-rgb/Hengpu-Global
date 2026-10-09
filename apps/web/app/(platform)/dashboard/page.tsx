@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { Nav } from '../../components/nav';
-import { apiFetch, services } from '../../lib/api';
+import { Nav } from '../../../components/nav';
+import { apiFetch, services } from '../../../lib/api';
 
 type User = { id: string; name: string; email: string; role: string; trust_score: number };
 

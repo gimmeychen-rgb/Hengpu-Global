@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Nav } from '../../components/nav';
-import { apiFetch, services } from '../../lib/api';
+import { Nav } from '../../../components/nav';
+import { apiFetch, services } from '../../../lib/api';
 
 type RequestRow = {
   id: string;

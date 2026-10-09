@@ -2,8 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 import { Send } from 'lucide-react';
-import { Nav } from '../../../components/nav';
-import { apiFetch, services } from '../../../lib/api';
+import { Nav } from '../../../../components/nav';
+import { apiFetch, services } from '../../../../lib/api';
 
 export default function CreateRequestPage() {
   const [error, setError] = useState('');
