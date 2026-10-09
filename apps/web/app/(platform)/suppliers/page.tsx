@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Nav } from '../../components/nav';
-import { apiFetch, services } from '../../lib/api';
+import { Nav } from '../../../components/nav';
+import { apiFetch, services } from '../../../lib/api';
 
 type Supplier = {
   id: string;

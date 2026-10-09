@@ -1,31 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { UserPlus } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { FormEvent, useState } from 'react';
-import { services } from '../../lib/api';
+import { services } from '../../../lib/api';
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const [error, setError] = useState('');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
     const form = new FormData(event.currentTarget);
-    const response = await fetch(`${services.auth}/auth/register`, {
+    const response = await fetch(`${services.auth}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: form.get('name'),
         email: form.get('email'),
-        password: form.get('password'),
-        role: form.get('role'),
-        company_name: form.get('company_name'),
-        country: form.get('country')
+        password: form.get('password')
       })
     });
     if (!response.ok) {
-      setError('Registration failed');
+      setError('Login failed');
       return;
     }
     const data = await response.json();
@@ -36,23 +32,14 @@ export default function RegisterPage() {
   return (
     <main className="mx-auto grid min-h-screen max-w-md content-center px-5">
       <form onSubmit={submit} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">Register</h1>
-        <input name="name" placeholder="Name" required />
+        <h1 className="text-2xl font-semibold">Login</h1>
         <input name="email" type="email" placeholder="Email" required />
-        <input name="password" type="password" placeholder="Password" minLength={6} required />
-        <select name="role" defaultValue="buyer">
-          <option value="buyer">Buyer</option>
-          <option value="supplier">Supplier</option>
-          <option value="admin">Admin</option>
-          <option value="agent">Agent</option>
-        </select>
-        <input name="company_name" placeholder="Company name" />
-        <input name="country" placeholder="Country" />
+        <input name="password" type="password" placeholder="Password" required />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white">
-          <UserPlus size={16} /> Register
+          <LogIn size={16} /> Login
         </button>
-        <Link className="text-sm text-zinc-600" href="/login">Already have an account</Link>
+        <Link className="text-sm text-zinc-600" href="/register">Create account</Link>
       </form>
     </main>
   );

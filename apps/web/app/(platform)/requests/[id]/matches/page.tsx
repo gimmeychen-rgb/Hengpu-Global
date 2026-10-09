@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Nav } from '../../../../components/nav';
-import { apiFetch, services } from '../../../../lib/api';
+import { Nav } from '../../../../../components/nav';
+import { apiFetch, services } from '../../../../../lib/api';
 
 type MatchResponse = { request_id: string; matches: Array<{ supplier_id: string; score: number }> };
 
