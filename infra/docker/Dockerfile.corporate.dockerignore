@@ -1,0 +1,18 @@
+# Dedicated allowlist; does not change the existing platform Docker build context.
+**
+!package.json
+!package-lock.json
+!tsconfig.base.json
+!apps/
+!apps/web/
+!apps/web/**
+!infra/
+!infra/nginx/
+!infra/nginx/corporate.conf
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
+**/.env
+**/.env.*
+**/*.log
+**/*.tsbuildinfo

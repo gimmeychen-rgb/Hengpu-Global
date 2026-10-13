@@ -5,3 +5,6 @@ dist
 .env.local
 coverage
 *.log
+
+# Next.js static website export
+apps/web/out/

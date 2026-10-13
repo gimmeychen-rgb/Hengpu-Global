@@ -1,0 +1,30 @@
+# Build only the corporate workspace; no business application source is copied.
+ARG NODE_IMAGE=node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+ARG NGINX_IMAGE=nginx:stable-alpine@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94
+FROM ${NODE_IMAGE} AS build
+WORKDIR /build
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY apps/web/package.json ./apps/web/package.json
+# Optional trusted CA is ephemeral and never copied into a layer/runtime image.
+RUN --mount=type=secret,id=corporate_build_ca \
+    if [ -f /run/secrets/corporate_build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/corporate_build_ca; fi; \
+    npm ci --workspace apps/web --include-workspace-root=false --ignore-scripts --no-audit --no-fund
+COPY apps/web ./apps/web
+ARG CORPORATE_SITE_URL=https://hengpuglobal.com
+ENV CORPORATE_SITE_URL=${CORPORATE_SITE_URL}
+RUN npm --workspace apps/web run build
+
+FROM ${NGINX_IMAGE} AS runtime
+RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/* /docker-entrypoint.d /docker-entrypoint.sh
+COPY --chmod=0644 infra/nginx/corporate.conf /etc/nginx/nginx.conf
+COPY --from=build /build/apps/web/out/ /usr/share/nginx/html/
+RUN find /usr/share/nginx/html -type d -exec chmod 0755 {} + \
+    && find /usr/share/nginx/html -type f -exec chmod 0644 {} +
+ARG CORPORATE_REVISION=uncommitted
+LABEL org.opencontainers.image.title="Hengpu corporate static website" \
+      org.opencontainers.image.revision="${CORPORATE_REVISION}"
+USER nginx
+EXPOSE 8080
+ENTRYPOINT ["nginx"]
+CMD ["-g", "daemon off;"]
