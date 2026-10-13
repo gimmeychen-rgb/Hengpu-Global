@@ -16,6 +16,9 @@
     "dev:suppliers": "npm --workspace services/supplier-service run start:dev",
     "dev:matching": "npm --workspace services/matching-service run start:dev",
     "dev:projects": "npm --workspace services/project-service run start:dev",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "dev:platform": "npm --workspace apps/platform run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "build:platform": "npm --workspace apps/platform run build"
   }
 }
