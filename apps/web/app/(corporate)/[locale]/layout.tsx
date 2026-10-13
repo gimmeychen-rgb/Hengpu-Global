@@ -8,17 +8,18 @@ export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'zh' }];
 }
 
-export default function CorporateRootLayout({
+export default async function CorporateRootLayout({
   children,
   params
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  if (!isLocale(params.locale)) notFound();
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
 
   return (
-    <html lang={params.locale}>
+    <html lang={locale}>
       <body>{children}</body>
     </html>
   );

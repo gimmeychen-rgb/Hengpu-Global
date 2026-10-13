@@ -3,11 +3,12 @@ import { notFound } from 'next/navigation';
 import { CorporateHome } from '../../../components/corporate-home';
 import { isLocale, siteContent } from '../../../lib/site-content';
 
-type CorporatePageProps = { params: { locale: string } };
+type CorporatePageProps = { params: Promise<{ locale: string }> };
 
-export function generateMetadata({ params }: CorporatePageProps): Metadata {
-  if (!isLocale(params.locale)) notFound();
-  const content = siteContent[params.locale];
+export async function generateMetadata({ params }: CorporatePageProps): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const content = siteContent[locale];
 
   // Production origin confirmed for Mission 04C; allow an explicit build-time override.
   const origin = new URL(process.env.CORPORATE_SITE_URL ?? 'https://hengpuglobal.com');
@@ -18,7 +19,7 @@ export function generateMetadata({ params }: CorporatePageProps): Metadata {
   return {
     metadataBase: origin,
     alternates: {
-      canonical: `/${params.locale}`,
+      canonical: `/${locale}`,
       languages: { en: '/en', zh: '/zh' }
     },
     title: content.seoTitle,
@@ -26,8 +27,9 @@ export function generateMetadata({ params }: CorporatePageProps): Metadata {
   };
 }
 
-export default function CorporatePage({ params }: CorporatePageProps) {
-  if (!isLocale(params.locale)) notFound();
+export default async function CorporatePage({ params }: CorporatePageProps) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
 
-  return <CorporateHome content={siteContent[params.locale]} language={params.locale} />;
+  return <CorporateHome content={siteContent[locale]} language={locale} />;
 }
