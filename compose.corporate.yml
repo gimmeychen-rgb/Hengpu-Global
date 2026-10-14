@@ -22,7 +22,7 @@ services:
     pids_limit: 100
     mem_limit: 128m
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/en"]
+      test: ["CMD", "wget", "-Y", "off", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/en"]
       interval: 30s
       timeout: 3s
       retries: 3
