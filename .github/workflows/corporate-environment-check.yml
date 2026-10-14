@@ -1,0 +1,43 @@
+
+name: Hengpu Corporate Environment Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  environment-check:
+    name: Verify GitHub Runner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Runner architecture ==="
+          uname -m
+          test "$(uname -m)" = "x86_64"
+
+          echo "=== Git repository ==="
+          git rev-parse --verify HEAD
+
+          echo "=== Docker availability ==="
+          docker version
+          docker info --format '{{.ServerVersion}}'
+
+          echo "=== Buildx availability ==="
+          docker buildx version
+
+          echo "=== Available disk space ==="
+          df -h .
+
+          echo "Environment check completed."
