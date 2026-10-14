@@ -1,0 +1,164 @@
+name: Corporate image digest check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-digests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Query and verify official registry manifests
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import platform
+          import re
+          import sys
+          import urllib.parse
+          import urllib.request
+
+          REGISTRY = "https://registry-1.docker.io"
+          INDEX_TYPES = {
+              "application/vnd.oci.image.index.v1+json",
+              "application/vnd.docker.distribution.manifest.list.v2+json",
+          }
+          MANIFEST_TYPES = {
+              "application/vnd.oci.image.manifest.v1+json",
+              "application/vnd.docker.distribution.manifest.v2+json",
+          }
+          ACCEPT = ", ".join(sorted(INDEX_TYPES | MANIFEST_TYPES))
+          TARGETS = [
+              ("node", "24.21.0-alpine3.24"),
+              ("nginx", "1.30.5-alpine3.24-slim"),
+          ]
+
+          def request(url, headers=None):
+              req = urllib.request.Request(url, headers=headers or {})
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return response.read(), response.headers
+
+          def manifest(repository, reference, token):
+              url = (
+                  f"{REGISTRY}/v2/{repository}/manifests/"
+                  + urllib.parse.quote(reference, safe=":")
+              )
+              body, headers = request(url, {
+                  "Authorization": f"Bearer {token}",
+                  "Accept": ACCEPT,
+                  "Accept-Encoding": "identity",
+              })
+              digest = headers.get("Docker-Content-Digest", "")
+              if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+                  raise ValueError("Missing or invalid registry SHA-256 digest")
+              computed = "sha256:" + hashlib.sha256(body).hexdigest()
+              if computed != digest:
+                  raise ValueError("Manifest bytes do not match registry digest")
+              if reference.startswith("sha256:") and reference != digest:
+                  raise ValueError("Requested digest does not match response")
+              document = json.loads(body)
+              if document.get("schemaVersion") != 2:
+                  raise ValueError("Unsupported manifest schema")
+              return digest, document
+
+          rows = []
+          failed = False
+
+          if platform.system() != "Linux" or platform.machine() != "x86_64":
+              sys.exit("::error::Runner must be Linux amd64")
+
+          for name, tag in TARGETS:
+              image = f"docker.io/library/{name}:{tag}"
+              try:
+                  repository = f"library/{name}"
+                  query = urllib.parse.urlencode({
+                      "service": "registry.docker.io",
+                      "scope": f"repository:{repository}:pull",
+                  })
+                  body, _ = request(
+                      "https://auth.docker.io/token?" + query
+                  )
+                  auth = json.loads(body)
+                  token = auth.get("token") or auth.get("access_token")
+                  if not token:
+                      raise ValueError("Registry did not return a read token")
+
+                  index_digest, index = manifest(repository, tag, token)
+                  if index.get("mediaType") not in INDEX_TYPES:
+                      raise ValueError("Tag did not resolve to a multi-architecture index")
+
+                  resolved_digest, _ = manifest(repository, index_digest, token)
+                  if resolved_digest != index_digest:
+                      raise ValueError("Index digest could not be resolved")
+
+                  matches = [
+                      item for item in index.get("manifests", [])
+                      if item.get("platform", {}).get("os") == "linux"
+                      and item.get("platform", {}).get("architecture") == "amd64"
+                  ]
+                  if len(matches) != 1:
+                      raise ValueError(
+                          f"Expected one linux/amd64 manifest; found {len(matches)}"
+                      )
+
+                  descriptor = matches[0]
+                  child_digest = descriptor.get("digest", "")
+                  if not re.fullmatch(r"sha256:[0-9a-f]{64}", child_digest):
+                      raise ValueError("Invalid linux/amd64 manifest digest")
+                  if descriptor.get("mediaType") not in MANIFEST_TYPES:
+                      raise ValueError("Unsupported child manifest type")
+
+                  _, child = manifest(repository, child_digest, token)
+                  if child.get("mediaType") not in MANIFEST_TYPES:
+                      raise ValueError("Child digest did not resolve to an image manifest")
+
+                  reported_platform = descriptor["platform"]
+                  print(json.dumps({
+                      "image": image,
+                      "registry": REGISTRY,
+                      "index_digest": index_digest,
+                      "amd64_manifest_digest": child_digest,
+                      "platform": reported_platform,
+                      "digest_bytes_verified": True,
+                  }, ensure_ascii=False))
+                  variant = reported_platform.get("variant")
+                  architecture = "linux/amd64" + (f"/{variant}" if variant else "")
+                  rows.append(
+                      f"| `{image}` | `{index_digest}` | "
+                      f"`{child_digest}` | `{architecture}` | Verified |"
+                  )
+              except Exception as exc:
+                  failed = True
+                  message = f"{type(exc).__name__}: {exc}"
+                  escaped = (
+                      message.replace("%", "%25")
+                      .replace("\r", "%0D")
+                      .replace("\n", "%0A")
+                  )
+                  print(f"::error::{image}: {escaped}", file=sys.stderr)
+                  rows.append(f"| `{image}` | — | — | linux/amd64 | FAILED |")
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Official Docker Hub digest verification\n\n")
+              summary.write(
+                  "| Image | Multi-architecture index SHA-256 | "
+                  "Child manifest SHA-256 | Descriptor platform | Result |\n"
+                  "|---|---|---|---|---|\n"
+              )
+              summary.write("\n".join(rows) + "\n\n")
+              summary.write(
+                  "Read-only manifest queries; no image layers downloaded. "
+                  "Platform is reported from the index descriptor. "
+                  "Digest verification does not establish vulnerability status.\n"
+              )
+
+          if failed:
+              sys.exit(1)
+          PY
